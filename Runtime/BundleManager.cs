@@ -13,7 +13,7 @@ namespace BundleSystem
     public static partial class BundleManager
     {
         //instance is almost only for coroutines
-        private static BundleManagerHelper s_Helper { get; set; }
+        private static BundleManagerRunner s_Helper { get; set; }
         private static DebugGuiHelper s_DebugGUI { get; set; }
 
         class LoadedBundle
@@ -62,10 +62,11 @@ namespace BundleSystem
 
             var managerGo = new GameObject("_BundleManager");
             GameObject.DontDestroyOnLoad(managerGo);
-            s_Helper = managerGo.AddComponent<BundleManagerHelper>();
+            s_Helper = managerGo.AddComponent<BundleManagerRunner>();
             s_DebugGUI = managerGo.AddComponent<DebugGuiHelper>();
             s_DebugGUI.enabled = s_ShowDebugGUI;
             LocalURL = Application.platform == RuntimePlatform.IPhonePlayer ? "file://" + AssetbundleBuildSettings.LocalBundleRuntimePath : AssetbundleBuildSettings.LocalBundleRuntimePath;
+
 #if UNITY_EDITOR
             SetupAssetdatabaseUsage();
             LocalURL = Path.Combine(s_EditorBuildSettings.LocalOutputPath, UnityEditor.EditorUserBuildSettings.activeBuildTarget.ToString());
@@ -388,7 +389,7 @@ namespace BundleSystem
         }
 
         //helper class for coroutine and callbacks
-        private class BundleManagerHelper : MonoBehaviour
+        private class BundleManagerRunner : MonoBehaviour
         {
             private void Update()
             {

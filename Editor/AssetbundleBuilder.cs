@@ -126,7 +126,10 @@ namespace BundleSystem
                 .ToList();
 
             //quick exit 
-            if (includedBundles == null || includedBundles.Count == 0) return ReturnCode.Success;
+            if (includedBundles == null || includedBundles.Count == 0) 
+            {
+                return ReturnCode.Success;
+            }
 
             for (int i = writeData.WriteOperations.Count - 1; i >= 0; --i)
             {

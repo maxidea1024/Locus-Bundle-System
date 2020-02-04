@@ -357,8 +357,8 @@ namespace BundleSystem
     /// </summary>
     public class BundleRequest<T> : CustomYieldInstruction, System.IDisposable where T : Object
     {
-        AssetBundleRequest mRequest;
-        T mLoadedAsset;
+        AssetBundleRequest request_;
+        T loadedAsset_;
 
         /// <summary>
         /// actual assetbundle request warpper
@@ -366,7 +366,7 @@ namespace BundleSystem
         /// <param name="request"></param>
         public BundleRequest(AssetBundleRequest request)
         {
-            mRequest = request;
+            request_ = request;
         }
 
         /// <summary>
@@ -375,33 +375,33 @@ namespace BundleSystem
         /// <param name="loadedAsset"></param>
         public BundleRequest(T loadedAsset)
         {
-            mLoadedAsset = loadedAsset;
+            loadedAsset_ = loadedAsset;
         }
 
         //provide similar apis
-        public override bool keepWaiting => mRequest == null ? false : !mRequest.isDone;
-        public bool IsDone => mRequest == null ? true : mRequest.isDone;
-        public T Asset => mRequest == null ? mLoadedAsset : mRequest.asset as T;
-        public float Progress => mRequest == null ? 1f : mRequest.progress;
+        public override bool keepWaiting => request_ == null ? false : !request_.isDone;
+        public bool IsDone => request_ == null ? true : request_.isDone;
+        public T Asset => request_ == null ? loadedAsset_ : request_.asset as T;
+        public float Progress => request_ == null ? 1f : request_.progress;
 
         public void Dispose()
         {
-            if (mRequest != null)
+            if (request_ != null)
             {
-                if (mRequest.isDone)
+                if (request_.isDone)
                 {
-                    if (mRequest.asset != null) 
+                    if (request_.asset != null) 
                     {
-                        BundleManager.ReleaseObject(mRequest.asset);
+                        BundleManager.ReleaseObject(request_.asset);
                     }
                 }
                 else
                 {
-                    mRequest.completed += op =>
+                    request_.completed += op =>
                     {
-                        if (mRequest.asset != null) 
+                        if (request_.asset != null) 
                         {
-                            BundleManager.ReleaseObject(mRequest.asset);
+                            BundleManager.ReleaseObject(request_.asset);
                         }
                     };
                 }

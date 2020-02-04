@@ -79,11 +79,7 @@ namespace BundleSystem
                     return false;
                 }
 
-                CurrentIndex++;
-                if (CurrentIndex >= Count) 
-                {
-                    CurrentIndex = 0;
-                }
+                CurrentIndex = (CurrentIndex + 1) % Count;
                 value = innerList_[CurrentIndex];
                 return true;
             }
@@ -184,11 +180,7 @@ namespace BundleSystem
                     return false;
                 }
 
-                CurrentIndex++;
-                if (CurrentIndex >= Count) 
-                {
-                    CurrentIndex = 0;
-                }
+                CurrentIndex = (CurrentIndex + 1) % Count;
                 value = innerList_[CurrentIndex];
                 return true;
             }
