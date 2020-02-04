@@ -10,24 +10,24 @@ namespace BundleSystem
     [CustomEditor(typeof(AssetbundleBuildSettings))]
     public class AssetbundleBuildSettingsInspector : Editor
     {
-        SerializedProperty m_SettingsProperty;
-        SerializedProperty m_RemoteOutputPath;
-        SerializedProperty m_LocalOutputPath;
-        SerializedProperty m_EmulateBundle;
-        SerializedProperty m_EmulateUseRemoteFolder;
-        SerializedProperty m_CleanCache;
-        SerializedProperty m_RemoteURL;
+        SerializedProperty settingsProperty_;
+        SerializedProperty remoteOutputPath_;
+        SerializedProperty localOutputPath_;
+        SerializedProperty emulateBundle_;
+        SerializedProperty emulateUseRemoteFolder_;
+        SerializedProperty cleanCache_;
+        SerializedProperty remoteUrl_;
         ReorderableList list;
 
-        SerializedProperty m_ForceRebuld;
-        SerializedProperty m_UseCacheServer;
-        SerializedProperty m_CacheServerHost;
-        SerializedProperty m_CacheServerPort;
+        SerializedProperty forceRebuild_;
+        SerializedProperty useCacheServer_;
+        SerializedProperty cacheServerHost_;
+        SerializedProperty cacheServerPort_;
 
-        SerializedProperty m_UseFtp;
-        SerializedProperty m_FtpHost;
-        SerializedProperty m_FtpUser;
-        SerializedProperty m_FtpPass;
+        SerializedProperty useFtp_;
+        SerializedProperty ftpHost_;
+        SerializedProperty ftpUser_;
+        SerializedProperty ftpPass_;
 
         // Add menu named "My Window" to the Window menu
         [MenuItem("Window/Asset Management/Select Active Assetbundle Build Settings")]
@@ -38,27 +38,27 @@ namespace BundleSystem
 
         private void OnEnable()
         {
-            m_SettingsProperty = serializedObject.FindProperty("BundleSettings");
-            m_RemoteOutputPath = serializedObject.FindProperty("m_RemoteOutputFolder");
-            m_LocalOutputPath = serializedObject.FindProperty("m_LocalOutputFolder");
-            m_EmulateBundle = serializedObject.FindProperty("EmulateInEditor");
-            m_EmulateUseRemoteFolder = serializedObject.FindProperty("EmulateWithoutRemoteURL");
-            m_CleanCache = serializedObject.FindProperty("CleanCacheInEditor");
-            m_RemoteURL = serializedObject.FindProperty("RemoteURL");
+            settingsProperty_ = serializedObject.FindProperty("BundleSettings");
+            remoteOutputPath_ = serializedObject.FindProperty("m_RemoteOutputFolder");
+            localOutputPath_ = serializedObject.FindProperty("m_LocalOutputFolder");
+            emulateBundle_ = serializedObject.FindProperty("EmulateInEditor");
+            emulateUseRemoteFolder_ = serializedObject.FindProperty("EmulateWithoutRemoteURL");
+            cleanCache_ = serializedObject.FindProperty("CleanCacheInEditor");
+            remoteUrl_ = serializedObject.FindProperty("RemoteURL");
 
-            m_ForceRebuld = serializedObject.FindProperty("ForceRebuild");
-            m_UseCacheServer = serializedObject.FindProperty("UseCacheServer");
-            m_CacheServerHost = serializedObject.FindProperty("CacheServerHost");
-            m_CacheServerPort = serializedObject.FindProperty("CacheServerPort");
+            forceRebuild_ = serializedObject.FindProperty("ForceRebuild");
+            useCacheServer_ = serializedObject.FindProperty("UseCacheServer");
+            cacheServerHost_ = serializedObject.FindProperty("CacheServerHost");
+            cacheServerPort_ = serializedObject.FindProperty("CacheServerPort");
 
-            m_UseFtp = serializedObject.FindProperty("UseFtp");
-            m_FtpHost = serializedObject.FindProperty("FtpHost");
-            m_FtpUser = serializedObject.FindProperty("FtpUserName");
-            m_FtpPass = serializedObject.FindProperty("FtpUserPass");
+            useFtp_ = serializedObject.FindProperty("UseFtp");
+            ftpHost_ = serializedObject.FindProperty("FtpHost");
+            ftpUser_ = serializedObject.FindProperty("FtpUserName");
+            ftpPass_ = serializedObject.FindProperty("FtpUserPass");
 
             var settings = target as AssetbundleBuildSettings;
 
-            list = new ReorderableList(serializedObject, m_SettingsProperty, true, true, true, true)
+            list = new ReorderableList(serializedObject, settingsProperty_, true, true, true, true)
             {
                 drawHeaderCallback = rect =>
                 {
@@ -67,14 +67,14 @@ namespace BundleSystem
 
                 elementHeightCallback = index =>
                 {
-                    var element = m_SettingsProperty.GetArrayElementAtIndex(index);
+                    var element = settingsProperty_.GetArrayElementAtIndex(index);
                     return EditorGUI.GetPropertyHeight(element, element.isExpanded);
                 },
 
                 drawElementCallback = (rect, index, a, h) =>
                 {
                     // get outer element
-                    var element = m_SettingsProperty.GetArrayElementAtIndex(index);
+                    var element = settingsProperty_.GetArrayElementAtIndex(index);
                     rect.xMin += 10;
                     EditorGUI.PropertyField(rect, element, new GUIContent(settings.BundleSettings[index].BundleName), element.isExpanded);
                 }
@@ -86,24 +86,24 @@ namespace BundleSystem
             var settings = target as AssetbundleBuildSettings;
 
             list.DoLayoutList();
-            EditorGUILayout.PropertyField(m_RemoteOutputPath);
-            EditorGUILayout.PropertyField(m_LocalOutputPath);
-            EditorGUILayout.PropertyField(m_RemoteURL);
+            EditorGUILayout.PropertyField(remoteOutputPath_);
+            EditorGUILayout.PropertyField(localOutputPath_);
+            EditorGUILayout.PropertyField(remoteUrl_);
             EditorGUILayout.Space(10);
-            EditorGUILayout.PropertyField(m_EmulateBundle);
-            EditorGUILayout.PropertyField(m_EmulateUseRemoteFolder);
-            EditorGUILayout.PropertyField(m_CleanCache);
-            EditorGUILayout.PropertyField(m_ForceRebuld);
+            EditorGUILayout.PropertyField(emulateBundle_);
+            EditorGUILayout.PropertyField(emulateUseRemoteFolder_);
+            EditorGUILayout.PropertyField(cleanCache_);
+            EditorGUILayout.PropertyField(forceRebuild_);
             EditorGUILayout.Space(10);
-            m_UseCacheServer.boolValue = EditorGUILayout.BeginToggleGroup("Cache Server", m_UseCacheServer.boolValue);
-            EditorGUILayout.PropertyField(m_CacheServerHost);
-            EditorGUILayout.PropertyField(m_CacheServerPort);
+            useCacheServer_.boolValue = EditorGUILayout.BeginToggleGroup("Cache Server", useCacheServer_.boolValue);
+            EditorGUILayout.PropertyField(cacheServerHost_);
+            EditorGUILayout.PropertyField(cacheServerPort_);
             EditorGUILayout.EndToggleGroup();
 
-            m_UseFtp.boolValue = EditorGUILayout.BeginToggleGroup("Ftp", m_UseFtp.boolValue);
-            EditorGUILayout.PropertyField(m_FtpHost);
-            EditorGUILayout.PropertyField(m_FtpUser);
-            m_FtpPass.stringValue = EditorGUILayout.PasswordField("Ftp Password", m_FtpPass.stringValue);
+            useFtp_.boolValue = EditorGUILayout.BeginToggleGroup("Ftp", useFtp_.boolValue);
+            EditorGUILayout.PropertyField(ftpHost_);
+            EditorGUILayout.PropertyField(ftpUser_);
+            ftpPass_.stringValue = EditorGUILayout.PasswordField("Ftp Password", ftpPass_.stringValue);
             EditorGUILayout.EndToggleGroup();
 
             bool allowBuild = true;
@@ -118,7 +118,7 @@ namespace BundleSystem
             GUILayout.Label($"Remote Output folder : { settings.RemoteOutputPath }");
             serializedObject.ApplyModifiedProperties();
 
-            if(AssetbundleBuildSettings.EditorInstance == settings)
+            if (AssetbundleBuildSettings.EditorInstance == settings)
             {
                 EditorGUILayout.BeginHorizontal();
                 if (allowBuild && GUILayout.Button("Build Remote"))

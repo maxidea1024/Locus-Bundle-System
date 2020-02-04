@@ -16,7 +16,10 @@ namespace BundleSystem
         {
             get
             {
-                if (s_EditorInstance != null) return s_EditorInstance;
+                if (s_EditorInstance != null) 
+                {
+                    return s_EditorInstance;
+                }
 
                 var defaultGUID = UnityEditor.EditorPrefs.GetString("LocusActiveBundleSetting", string.Empty);
                 var assetPath = UnityEditor.AssetDatabase.GUIDToAssetPath(defaultGUID);
@@ -24,7 +27,7 @@ namespace BundleSystem
                 if (!string.IsNullOrEmpty(assetPath))
                 {
                     var found = UnityEditor.AssetDatabase.LoadAssetAtPath<AssetbundleBuildSettings>(assetPath);
-                    if(found != null)
+                    if (found != null)
                     {
                         s_EditorInstance = found;
                         return s_EditorInstance;
@@ -32,7 +35,10 @@ namespace BundleSystem
                 }
 
                 var assetPathes = UnityEditor.AssetDatabase.FindAssets("t:AssetbundleBuildSettings");
-                if (assetPathes.Length == 0) return null;
+                if (assetPathes.Length == 0)
+                {
+                    return null;
+                }
 
                 var guid = UnityEditor.AssetDatabase.GUIDToAssetPath(UnityEditor.AssetDatabase.GUIDToAssetPath(assetPathes[0]));
                 UnityEditor.EditorPrefs.GetString("LocusActiveBundleSetting", guid);
@@ -58,8 +64,16 @@ namespace BundleSystem
                 var currentFile = files[i];
                 var unityPath = currentFile.FullName.Remove(0, Application.dataPath.Length - 6);
                 var mainType = UnityEditor.AssetDatabase.GetMainAssetTypeAtPath(unityPath);
-                if (mainType == null) continue;
-                if (mainType == typeof(UnityEditor.MonoScript)) continue;
+                if (mainType == null)
+                {
+                    continue;
+                }
+
+                if (mainType == typeof(UnityEditor.MonoScript))
+                {
+                    continue;
+                }
+
                 if (mainType.IsSubclassOf(typeof(Object)))
                 {
                     resultAssetPath.Add(unityPath);
@@ -82,13 +96,13 @@ namespace BundleSystem
         public bool IsValid()
         {
             return !BundleSettings.GroupBy(setting => setting.BundleName).Any(group => group.Count() > 1 ||
-                string.IsNullOrEmpty(group.Key));
+                    string.IsNullOrEmpty(group.Key));
         }
 #endif
         public const string ManifestFileName = "Manifest.json";
         public static string LocalBundleRuntimePath => Application.streamingAssetsPath + "/localbundles/";
-        public string LocalOutputPath => Application.dataPath.Remove(Application.dataPath.Length - 6) + m_LocalOutputFolder;
-        public string RemoteOutputPath => Application.dataPath.Remove(Application.dataPath.Length - 6) + m_RemoteOutputFolder;
+        public string LocalOutputPath => Application.dataPath.Remove(Application.dataPath.Length - 6) + localOutputFolder_;
+        public string RemoteOutputPath => Application.dataPath.Remove(Application.dataPath.Length - 6) + remoteOutputFolder_;
 
         public List<BundleSetting> BundleSettings = new List<BundleSetting>();
 
@@ -97,13 +111,13 @@ namespace BundleSystem
         /// </summary>
         [SerializeField]
         [Tooltip("Remote bundle build output folder")]
-        string m_RemoteOutputFolder = "RemoteBundles";
+        string remoteOutputFolder_ = "RemoteBundles";
         /// <summary>
         /// output folder inside project
         /// </summary>
         [SerializeField]
         [Tooltip("Local bundle build output folder")]
-        string m_LocalOutputFolder = "LocalBundles";
+        string localOutputFolder_ = "LocalBundles";
 
         [Tooltip("Remote URL for downloading remote bundles")]
         public string RemoteURL = "http://localhost/";
@@ -144,5 +158,3 @@ namespace BundleSystem
         public bool CompressBundle = true;
     }
 }
-
-     

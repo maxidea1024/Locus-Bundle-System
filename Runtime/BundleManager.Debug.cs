@@ -19,7 +19,11 @@ namespace BundleSystem
                 GUILayout.Label("-----------------");
                 foreach (var kv in s_BundleRefCounts)
                 {
-                    if (kv.Value == 0) continue;
+                    if (kv.Value == 0) 
+                    {
+                        continue;
+                    }
+                    
                     GUILayout.Label($"Name : {kv.Key} - {kv.Value}");
                 }
 
@@ -30,7 +34,11 @@ namespace BundleSystem
                     GUILayout.Label("-----------------");
                     foreach (var kv in s_BundleDirectUseCount)
                     {
-                        if (kv.Value == 0) continue;
+                        if (kv.Value == 0) 
+                        {
+                            continue;
+                        }
+
                         GUILayout.Label($"Name : {kv.Key} - {kv.Value}");
                     }
                 }

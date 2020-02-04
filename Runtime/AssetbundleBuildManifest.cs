@@ -10,7 +10,7 @@ namespace BundleSystem
     {
         public static bool TryParse(string json, out AssetbundleBuildManifest manifest)
         {
-            if(string.IsNullOrEmpty(json))
+            if (string.IsNullOrEmpty(json))
             {
                 manifest = default;
                 return false;
@@ -35,11 +35,11 @@ namespace BundleSystem
             public string BundleName;
 
             [SerializeField]
-            string m_HashString;
+            string hashString_;
             public Hash128 Hash
             {
-                get => Hash128.Parse(m_HashString);
-                set => m_HashString = value.ToString();
+                get => Hash128.Parse(hashString_);
+                set => hashString_ = value.ToString();
             }
 
             public List<string> Dependencies;
@@ -56,11 +56,11 @@ namespace BundleSystem
         public string RemoteURL;
 
         [SerializeField]
-        string m_GlobalHash;
+        string globalHash_;
         public Hash128 GlobalHash
         {
-            get => Hash128.Parse(m_GlobalHash);
-            set => m_GlobalHash = value.ToString();
+            get => Hash128.Parse(globalHash_);
+            set => globalHash_ = value.ToString();
         }
 
         public bool TryGetBundleInfo(string name, out BundleInfo info)
@@ -72,7 +72,7 @@ namespace BundleSystem
 
         public bool TryGetBundleHash(string name, out Hash128 hash)
         {
-            if(TryGetBundleInfo(name, out var info))
+            if (TryGetBundleInfo(name, out var info))
             {
                 hash = info.Hash;
                 return true;

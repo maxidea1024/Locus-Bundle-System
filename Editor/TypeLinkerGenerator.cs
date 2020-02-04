@@ -15,7 +15,7 @@ namespace BundleSystem
         public static string Generate(AssetbundleBuildSettings settings, IBundleBuildResults result)
         {
             var linkGenerator = new LinkXmlGenerator();
-            foreach(var writeResult in result.WriteResults)
+            foreach (var writeResult in result.WriteResults)
             {
                 linkGenerator.AddTypes(writeResult.Value.includedTypes);
             }
@@ -31,14 +31,17 @@ namespace BundleSystem
 
     public class LinkXmlGenerator
     {
-        Dictionary<Type, Type> m_TypeConversion = new Dictionary<Type, Type>();
-        HashSet<Type> m_Types = new HashSet<Type>();
+        Dictionary<Type, Type> typeConversion_ = new Dictionary<Type, Type>();
+        HashSet<Type> types_ = new HashSet<Type>();
 
         ///<Summary>link.xmlに登録する型を追加する</Summary>
         public void AddType(Type type)
         {
             if (type == null)
+            {
                 return;
+            }
+
             AddTypeInternal(type);
         }
 
@@ -46,36 +49,52 @@ namespace BundleSystem
         public void AddTypes(params Type[] types)
         {
             if (types == null)
+            {
                 return;
+            }
+
             foreach (var t in types)
+            {
                 AddTypeInternal(t);
+            }
         }
 
         ///<Summary>link.xmlに登録する型を追加する</Summary>
         public void AddTypes(IEnumerable<Type> types)
         {
             if (types == null)
+            {
                 return;
+            }
+
             foreach (var t in types)
+            {
                 AddTypeInternal(t);
+            }
         }
 
         private void AddTypeInternal(Type t)
         {
             if (t == null)
+            {
                 return;
+            }
 
             Type convertedType;
-            if (m_TypeConversion.TryGetValue(t, out convertedType))
-                m_Types.Add(convertedType);
+            if (typeConversion_.TryGetValue(t, out convertedType))
+            {
+                types_.Add(convertedType);
+            }
             else
-                m_Types.Add(t);
+            {
+                types_.Add(t);
+            }
         }
 
         ///<Summary>代替する型を指定する。エディターとランタイムで利用する型が違う場合に使用</Summary>
         public void SetTypeConversion(Type a, Type b)
         {
-            m_TypeConversion[a] = b;
+            typeConversion_[a] = b;
         }
 
 
@@ -106,27 +125,35 @@ namespace BundleSystem
         public void AddAssets(string[] assetPaths)
         {
             foreach (var assetPath in assetPaths)
+            {
                 AddAsset(assetPath);
+            }
         }
 
         ///<Summary>link.xmlファイルを保存する</Summary>
         public void Save(string path)
         {
             var assemblyMap = new Dictionary<Assembly, List<Type>>();
-            foreach (var t in m_Types)
+            foreach (var t in types_)
             {
                 var a = t.Assembly;
                 List<Type> types;
                 if (!assemblyMap.TryGetValue(a, out types))
+                {
                     assemblyMap.Add(a, types = new List<Type>());
+                }
+
                 types.Add(t);
             }
+
             XmlDocument doc = new XmlDocument();
             var linker = doc.AppendChild(doc.CreateElement("linker"));
             foreach (var k in assemblyMap)
             {
                 if (k.Key.FullName.Contains("UnityEditor"))
+                {
                     continue;
+                }
 
                 var assembly = linker.AppendChild(doc.CreateElement("assembly"));
                 var attr = doc.CreateAttribute("fullname");
@@ -150,8 +177,8 @@ namespace BundleSystem
                     }
                 }
             }
+
             doc.Save(path);
         }
     }
 }
-

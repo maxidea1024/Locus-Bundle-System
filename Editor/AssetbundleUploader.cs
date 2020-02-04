@@ -1,4 +1,6 @@
-﻿using System.IO;
+﻿//TODO AWS S3에 업로드하는 기능 추가.
+
+using System.IO;
 using System.Net;
 using UnityEditor;
 using UnityEngine;

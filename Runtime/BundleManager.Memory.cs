@@ -28,7 +28,7 @@ namespace BundleSystem
             public LoadedBundle Bundle;
             public TrackingObject(Object obj, LoadedBundle loadedBundle)
             {
-                if(s_WeakRefPool.Count > 0)
+                if (s_WeakRefPool.Count > 0)
                 {
                     WeakRef = s_WeakRefPool.Pop();
                     WeakRef.Target = obj;
@@ -37,6 +37,7 @@ namespace BundleSystem
                 {
                     WeakRef = new System.WeakReference(obj);
                 }
+
                 Bundle = loadedBundle;
                 RefCount = 1;
             }
@@ -46,6 +47,7 @@ namespace BundleSystem
         {
             public GameObject Owner;
             public Object Child; //should own Object reference otherwise it'll be forgotton.
+
             public TrackingOwner(GameObject owner, Object child)
             {
                 Owner = owner;
@@ -57,6 +59,7 @@ namespace BundleSystem
         {
             public GameObject GameObject;
             public LoadedBundle Bundle;
+
             public TrackingGameObject(GameObject obj, LoadedBundle loadedBundle)
             {
                 GameObject = obj;
@@ -82,7 +85,7 @@ namespace BundleSystem
         private static void TrackObjectsInternal<T>(T[] objs, LoadedBundle loadedBundle) where T : Object
         {
             int retainCount = 0;
-            for(int i = 0; i < objs.Length; i++)
+            for (int i = 0; i < objs.Length; i++)
             {
                 var id = objs[0].GetInstanceID();
                 if (s_TrackingObjects.TryGetValue(id, out var trackingObject))
@@ -97,7 +100,11 @@ namespace BundleSystem
                 }
                 s_TrackingObjects[id] = trackingObject; //update
             }
-            if(retainCount > 0) RetainBundleInternal(loadedBundle, retainCount); //do once
+
+            if (retainCount > 0) 
+            {
+                RetainBundleInternal(loadedBundle, retainCount); //do once
+            }
         }
 
         private static void UntrackObjectInternal(Object obj)
@@ -125,7 +132,11 @@ namespace BundleSystem
 
         private static void TrackIndepenantInternal(LoadedBundle loadedBundle, GameObject go)
         {
-            if (go.scene.name == null) throw new System.Exception("GameObject is not instantiated one");
+            if (go.scene.name == null) 
+            {
+                throw new System.Exception("GameObject is not instantiated one");
+            }
+
             s_TrackingGameObjects.Add(new TrackingGameObject(go, loadedBundle));
             RetainBundleInternal(loadedBundle, 1);
         }
@@ -133,18 +144,33 @@ namespace BundleSystem
         public static void ReleaseObject(Object obj)
         {
 #if UNITY_EDITOR
-            if (UseAssetDatabase) return;
+            if (UseAssetDatabase) 
+            {
+                return;
+            }
 #endif
             UntrackObjectInternal(obj);
         }
 
         public static T TrackObjectWithOwner<T>(GameObject owner, T loaded) where T : Object
         {
-            if (owner.scene.name == null) throw new System.Exception("GameObject is not instantiated one");
+            if (owner.scene.name == null) 
+            {
+                throw new System.Exception("GameObject is not instantiated one");
+            }
+
             var id = loaded.GetInstanceID();
-            if (!s_TrackingObjects.TryGetValue(id, out var tracking)) throw new System.Exception("Original Object is not tracked");
+            if (!s_TrackingObjects.TryGetValue(id, out var tracking)) 
+            {
+                throw new System.Exception("Original Object is not tracked");
+            }
+
             var tupleKey = new TupleObjectKey(owner, loaded);
-            if (s_TrackingOwners.ContainsKey(tupleKey)) throw new System.Exception("Already Tracked by this combination");
+            if (s_TrackingOwners.ContainsKey(tupleKey)) 
+            {
+                throw new System.Exception("Already Tracked by this combination");
+            }
+
             s_TrackingOwners.Add(tupleKey, new TrackingOwner(owner, loaded));
             tracking.RefCount++; //increase refCount
             s_TrackingObjects[id] = tracking;
@@ -154,7 +180,11 @@ namespace BundleSystem
         public static bool UntrackObjectWithOwner(GameObject owner, Object loaded)
         {
             var tupleKey = new TupleObjectKey(owner, loaded);
-            if (!s_TrackingOwners.TryGetValue(tupleKey, out var tracking)) return false; //is not tracking combination
+            if (!s_TrackingOwners.TryGetValue(tupleKey, out var tracking)) 
+            {
+                return false; //is not tracking combination
+            }
+
             s_TrackingOwners.Remove(tupleKey);
             UntrackObjectInternal(tracking.Child);
             return true;
@@ -168,7 +198,10 @@ namespace BundleSystem
                 RetainBundleInternal(loadedBundle, 1);
                 scene.GetRootGameObjects(s_SceneRootObjectCache);
                 for (int i = 0; i < s_SceneRootObjectCache.Count; i++)
+                {
                     TrackIndepenantInternal(loadedBundle, s_SceneRootObjectCache[i]);
+                }
+
                 s_SceneRootObjectCache.Clear();
             }
         }
@@ -184,14 +217,26 @@ namespace BundleSystem
         private static void RetainBundleInternal(LoadedBundle bundle, int count)
         {
 #if UNITY_EDITOR
-            if (s_BundleDirectUseCount.ContainsKey(bundle.Name)) s_BundleDirectUseCount[bundle.Name] += count;
-            else s_BundleDirectUseCount.Add(bundle.Name, count);
+            if (s_BundleDirectUseCount.ContainsKey(bundle.Name)) 
+            {
+                s_BundleDirectUseCount[bundle.Name] += count;
+            }
+            else 
+            {
+                s_BundleDirectUseCount.Add(bundle.Name, count);
+            }
 #endif
             for (int i = 0; i < bundle.Dependencies.Count; i++)
             {
                 var refBundleName = bundle.Dependencies[i];
-                if (!s_BundleRefCounts.ContainsKey(refBundleName)) s_BundleRefCounts[refBundleName] = count;
-                else s_BundleRefCounts[refBundleName] += count;
+                if (!s_BundleRefCounts.ContainsKey(refBundleName)) 
+                {
+                    s_BundleRefCounts[refBundleName] = count;
+                }
+                else 
+                {
+                    s_BundleRefCounts[refBundleName] += count;
+                }
             }
         }
 
@@ -206,7 +251,10 @@ namespace BundleSystem
                 if (s_BundleRefCounts.ContainsKey(refBundleName))
                 {
                     s_BundleRefCounts[refBundleName] -= count;
-                    if (s_BundleRefCounts[refBundleName] <= 0) ReloadBundle(refBundleName);
+                    if (s_BundleRefCounts[refBundleName] <= 0) 
+                    {
+                        ReloadBundle(refBundleName);
+                    }
                 }
             }
         }
@@ -217,7 +265,7 @@ namespace BundleSystem
             //first, owner
             {
                 int trackCount = Mathf.CeilToInt(Time.unscaledDeltaTime * 0.2f * s_TrackingOwners.Count);
-                for(int i = 0; i < trackCount; i++)
+                for (int i = 0; i < trackCount; i++)
                 {
                     if (s_TrackingOwners.TryGetNext(out var kv) && kv.Value.Owner == null)
                     {
@@ -261,17 +309,25 @@ namespace BundleSystem
 
             if (!s_AssetBundles.TryGetValue(bundleName, out var loadedBundle))
             {
-                if (LogMessages) Debug.Log("Bundle To Reload does not exist");
+                if (LogMessages) 
+                {
+                    Debug.Log("Bundle To Reload does not exist");
+                }
+
                 return;
             }
 
-            if(loadedBundle.IsReloading)
+            if (loadedBundle.IsReloading)
             {
-                if (LogMessages) Debug.Log("Bundle is already reloading");
+                if (LogMessages) 
+                {
+                    Debug.Log("Bundle is already reloading");
+                }
+
                 return;
             }
 
-            if(loadedBundle.RequestForReload != null)
+            if (loadedBundle.RequestForReload != null)
             {
                 loadedBundle.Bundle.Unload(true);
                 loadedBundle.Bundle = DownloadHandlerAssetBundle.GetContent(loadedBundle.RequestForReload);
@@ -287,7 +343,11 @@ namespace BundleSystem
 
         static IEnumerator ReloadBundle(string bundleName, LoadedBundle loadedBundle)
         {
-            if (LogMessages) Debug.Log($"Start Reloading Bundle {bundleName}");
+            if (LogMessages) 
+            {
+                Debug.Log($"Start Reloading Bundle {bundleName}");
+            }
+
             var bundleReq = loadedBundle.IsLocalBundle? UnityWebRequestAssetBundle.GetAssetBundle(loadedBundle.LoadPath) : 
                 UnityWebRequestAssetBundle.GetAssetBundle(loadedBundle.LoadPath, new CachedAssetBundle(bundleName, loadedBundle.Hash));
 
@@ -301,28 +361,39 @@ namespace BundleSystem
                 yield break;
             }
 
-            if(!s_AssetBundles.TryGetValue(bundleName, out var currentLoadedBundle) || currentLoadedBundle.Hash != loadedBundle.Hash)
+            if (!s_AssetBundles.TryGetValue(bundleName, out var currentLoadedBundle) || currentLoadedBundle.Hash != loadedBundle.Hash)
             {
-                if (LogMessages) Debug.Log("Bundle To Reload does not exist(changed during loaing)");
+                if (LogMessages) 
+                {
+                    Debug.Log("Bundle To Reload does not exist(changed during loaing)");
+                }
+
                 bundleReq.Dispose();
                 yield break;
             }
 
             //if we can swap now
-            if(!s_BundleRefCounts.TryGetValue(bundleName, out var refCount) || refCount == 0)
+            if (!s_BundleRefCounts.TryGetValue(bundleName, out var refCount) || refCount == 0)
             {
-                if (LogMessages) Debug.Log($"Reloaded Bundle {bundleName}");
+                if (LogMessages) 
+                {
+                    Debug.Log($"Reloaded Bundle {bundleName}");
+                }
+
                 loadedBundle.Bundle.Unload(true);
                 loadedBundle.Bundle = DownloadHandlerAssetBundle.GetContent(bundleReq);
                 bundleReq.Dispose();
             }
             else
             {
-                if (LogMessages) Debug.Log($"Reloaded Bundle Cached for later use {bundleName}");
+                if (LogMessages) 
+                {
+                    Debug.Log($"Reloaded Bundle Cached for later use {bundleName}");
+                }
+
                 //store request for laster use
                 loadedBundle.RequestForReload = bundleReq;
             }
         }
     }
 }
-

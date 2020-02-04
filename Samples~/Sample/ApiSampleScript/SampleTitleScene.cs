@@ -34,7 +34,7 @@ public class SampleTitleScene : MonoBehaviour
     public void OnSpawnButton()
     {
         var loadedAsset = BundleManager.Load<GameObject>("Remote", "Cube");
-        if(loadedAsset != null)
+        if (loadedAsset != null)
         {
             m_Instances.Add(BundleManager.Instantiate(loadedAsset));
             BundleManager.ReleaseObject(loadedAsset);

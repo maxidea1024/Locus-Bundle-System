@@ -9,6 +9,7 @@ namespace BundleSystem
         public string guid;
     }
 }
+
 #if UNITY_EDITOR
 namespace BundleSystem
 {
@@ -34,7 +35,9 @@ namespace BundleSystem
             };
 
             if (GUI.Button(textFieldRect, guiContent, textFieldStyle) && obj)
+            {
                 EditorGUIUtility.PingObject(obj);
+            }
 
             if (textFieldRect.Contains(Event.current.mousePosition))
             {
@@ -71,7 +74,7 @@ namespace BundleSystem
                     obj = AssetDatabase.LoadAssetAtPath(path, typeof(DefaultAsset));
                     guid.stringValue = AssetDatabase.AssetPathToGUID(AssetDatabase.GetAssetPath(obj));
                 }
-                else if(!string.IsNullOrEmpty(path))
+                else if (!string.IsNullOrEmpty(path))
                 {
                     Debug.LogError("The path must be in the Assets folder");
                 }

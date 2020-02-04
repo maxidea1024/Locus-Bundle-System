@@ -27,6 +27,7 @@ namespace BundleSystem
             public string LoadPath;
             public UnityWebRequest RequestForReload;
             public bool IsReloading = false;
+
             public LoadedBundle(AssetbundleBuildManifest.BundleInfo info, string loadPath, AssetBundle bundle, bool isLocal)
             {
                 Name = info.BundleName;
@@ -74,13 +75,19 @@ namespace BundleSystem
         static void CollectSceneNames(LoadedBundle loadedBundle)
         {
             var scenes = loadedBundle.Bundle.GetAllScenePaths();
-            foreach (var scene in scenes) s_SceneNames[scene] = loadedBundle;
+            foreach (var scene in scenes) 
+            {
+                s_SceneNames[scene] = loadedBundle;
+            }
         }
 
         private static void OnDestroy()
         {
             foreach (var kv in s_AssetBundles)
+            {
                 kv.Value.Bundle.Unload(false);
+            }
+
             s_AssetBundles.Clear();
         }
 
@@ -93,7 +100,7 @@ namespace BundleSystem
 
         static IEnumerator CoInitalizeLocalBundles(BundleAsyncOperation result, bool autoReloadBundle)
         {
-            if(Initialized)
+            if (Initialized)
             {
                 result.Done(BundleErrorCode.Success);
                 yield break;
@@ -101,17 +108,22 @@ namespace BundleSystem
 
             AutoReloadBundle = autoReloadBundle;
 
-            if(UseAssetDatabase)
+            if (UseAssetDatabase)
             {
                 Initialized = true; 
                 result.Done(BundleErrorCode.Success);
                 yield break;
             }
 
-            if(LogMessages) Debug.Log($"LocalURL : {LocalURL}");
+            if (LogMessages) 
+            {
+                Debug.Log($"LocalURL : {LocalURL}");
+            }
 
             foreach (var kv in s_AssetBundles)
+            {
                 kv.Value.Bundle.Unload(false);
+            }
             s_SceneNames.Clear();
             s_AssetBundles.Clear();
             s_LocalBundles.Clear();
@@ -124,7 +136,7 @@ namespace BundleSystem
                 yield break;
             }
 
-            if(!AssetbundleBuildManifest.TryParse(manifestReq.downloadHandler.text, out var localManifest))
+            if (!AssetbundleBuildManifest.TryParse(manifestReq.downloadHandler.text, out var localManifest))
             {
                 result.Done(BundleErrorCode.ManifestParseError);
                 yield break;
@@ -135,7 +147,7 @@ namespace BundleSystem
                 && cachedManifest.BuildTime > localManifest.BuildTime;
 
             result.SetIndexLength(localManifest.BundleInfos.Count);
-            for(int i = 0; i < localManifest.BundleInfos.Count; i++)
+            for (int i = 0; i < localManifest.BundleInfos.Count; i++)
             {
                 result.SetCurrentIndex(i);
                 result.SetCachedBundle(true);
@@ -165,7 +177,10 @@ namespace BundleSystem
                     s_AssetBundles.Add(localBundleInfo.BundleName, loadedBundle);
                     CollectSceneNames(loadedBundle);
 
-                    if (LogMessages) Debug.Log($"Local bundle Loaded - Name : {localBundleInfo.BundleName}, Hash : {bundleInfoToLoad.Hash }");
+                    if (LogMessages) 
+                    {
+                        Debug.Log($"Local bundle Loaded - Name : {localBundleInfo.BundleName}, Hash : {bundleInfoToLoad.Hash }");
+                    }
                 }
                 else
                 {
@@ -180,10 +195,16 @@ namespace BundleSystem
             RemoteURL = Path.Combine(localManifest.RemoteURL, localManifest.BuildTarget);
 #if UNITY_EDITOR
             if (s_EditorBuildSettings.EmulateWithoutRemoteURL)
+            {
                 RemoteURL = Path.Combine(s_EditorBuildSettings.RemoteOutputPath, UnityEditor.EditorUserBuildSettings.activeBuildTarget.ToString());
+            }
 #endif
             Initialized = true;
-            if (LogMessages) Debug.Log($"Initialize Success \nRemote URL : {RemoteURL} \nLocal URL : {LocalURL}");
+            if (LogMessages) 
+            {
+                Debug.Log($"Initialize Success \nRemote URL : {RemoteURL} \nLocal URL : {LocalURL}");
+            }
+
             result.Done(BundleErrorCode.Success);
         }
 
@@ -247,7 +268,9 @@ namespace BundleSystem
                 var bundleInfo = manifest.BundleInfos[i];
                 var localBundle = s_LocalBundles.TryGetValue(bundleInfo.BundleName, out var localHash) && localHash == bundleInfo.Hash;
                 if (!localBundle && !Caching.IsVersionCached(bundleInfo.AsCached))
+                {
                     totalSize += bundleInfo.Size;
+                }
             }
 
             return totalSize;
@@ -274,7 +297,7 @@ namespace BundleSystem
                 yield break;
             }
 
-            if(UseAssetDatabase)
+            if (UseAssetDatabase)
             {
                 result.Done(BundleErrorCode.Success);
                 yield break;
@@ -294,12 +317,18 @@ namespace BundleSystem
                 result.SetCachedBundle(isCached);
 
                 var loadURL = localBundle ? Path.Combine(LocalURL, bundleInfo.BundleName) : Path.Combine(RemoteURL, bundleInfo.BundleName);
-                if (LogMessages) Debug.Log($"Loading Bundle Name : {bundleInfo.BundleName}, loadURL {loadURL}, isLocalBundle : {localBundle}, isCached {isCached}");
+                if (LogMessages) 
+                {
+                    Debug.Log($"Loading Bundle Name : {bundleInfo.BundleName}, loadURL {loadURL}, isLocalBundle : {localBundle}, isCached {isCached}");
+                }
                 LoadedBundle previousBundle;
 
                 if (s_AssetBundles.TryGetValue(bundleInfo.BundleName, out previousBundle) && previousBundle.Hash == bundleInfo.Hash)
                 {
-                    if (LogMessages) Debug.Log($"Loading Bundle Name : {bundleInfo.BundleName} Complete - load skipped");
+                    if (LogMessages) 
+                    {
+                        Debug.Log($"Loading Bundle Name : {bundleInfo.BundleName} Complete - load skipped");
+                    }
                 }
                 else
                 {
@@ -322,14 +351,19 @@ namespace BundleSystem
                         bundleReplaced = true;
                         previousBundle.Bundle.Unload(hardUnload);
                         if (previousBundle.RequestForReload != null) 
+                        {
                             previousBundle.RequestForReload.Dispose(); //dispose reload bundle
+                        }
                         s_AssetBundles.Remove(bundleInfo.BundleName);
                     }
 
                     var loadedBundle = new LoadedBundle(bundleInfo, loadURL, DownloadHandlerAssetBundle.GetContent(bundleReq), localBundle);
                     s_AssetBundles.Add(bundleInfo.BundleName, loadedBundle);
                     CollectSceneNames(loadedBundle);
-                    if (LogMessages) Debug.Log($"Loading Bundle Name : {bundleInfo.BundleName} Complete");
+                    if (LogMessages) 
+                    {
+                        Debug.Log($"Loading Bundle Name : {bundleInfo.BundleName} Complete");
+                    }
                     bundleReq.Dispose();
                 }
 
@@ -337,9 +371,15 @@ namespace BundleSystem
             }
 
             var timeTook = Time.realtimeSinceStartup - startTime;
-            if (LogMessages) Debug.Log($"CacheUsed Before Cleanup : {Caching.defaultCache.spaceOccupied} bytes");
+            if (LogMessages) 
+            {
+                Debug.Log($"CacheUsed Before Cleanup : {Caching.defaultCache.spaceOccupied} bytes");
+            }
             Caching.ClearCache((int)timeTook + 600);
-            if (LogMessages) Debug.Log($"CacheUsed After CleanUp : {Caching.defaultCache.spaceOccupied} bytes");
+            if (LogMessages) 
+            {
+                Debug.Log($"CacheUsed After CleanUp : {Caching.defaultCache.spaceOccupied} bytes");
+            }
 
             PlayerPrefs.SetString("CachedManifest", JsonUtility.ToJson(remoteManifest));
             GlobalBundleHash = remoteManifest.GlobalHash.ToString();
@@ -360,7 +400,5 @@ namespace BundleSystem
                 BundleManager.OnDestroy();
             }
         }
-
-        
     }
 }

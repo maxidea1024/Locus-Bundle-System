@@ -19,23 +19,26 @@ namespace BundleSystem
 
         class CustomBuildParameters : BundleBuildParameters
         {
-            AssetbundleBuildSettings m_Settings;
-            bool m_IsLocal;
+            AssetbundleBuildSettings settings_;
+            bool isLocal_;
 
             public CustomBuildParameters(AssetbundleBuildSettings settings, BuildTarget target, BuildTargetGroup group, string outputFolder, bool isLocal) : base(target, group, outputFolder)
             {
-                m_Settings = settings;
-                m_IsLocal = isLocal;
+                settings_ = settings;
+                isLocal_ = isLocal;
             }
 
             // Override the GetCompressionForIdentifier method with new logic
             public override BuildCompression GetCompressionForIdentifier(string identifier)
             {
                 //local bundles are always lz4 for faster initializing
-                if (m_IsLocal) return BuildCompression.LZ4;
+                if (isLocal_)
+                {
+                    return BuildCompression.LZ4;
+                }
 
                 //find user set compression method
-                var found = m_Settings.BundleSettings.FirstOrDefault(setting => setting.BundleName == identifier);
+                var found = settings_.BundleSettings.FirstOrDefault(setting => setting.BundleName == identifier);
                 return found == null || !found.CompressBundle ? BuildCompression.LZ4 : BuildCompression.LZMA;
             }
         }
@@ -47,11 +50,19 @@ namespace BundleSystem
             {
                 var folderPath = AssetDatabase.GUIDToAssetPath(setting.Folder.guid);
                 var dir = new DirectoryInfo(Path.Combine(Application.dataPath, folderPath.Remove(0, 7)));
-                if (!dir.Exists) throw new System.Exception($"Could not found Path {folderPath} for {setting.BundleName}");
+                if (!dir.Exists) 
+                {
+                    throw new System.Exception($"Could not found Path {folderPath} for {setting.BundleName}");
+                }
+
                 var assetPathes = new List<string>();
                 var loadPathes = new List<string>();
                 AssetbundleBuildSettings.GetFilesInDirectory(string.Empty, assetPathes, loadPathes, dir, setting.IncludeSubfolder);
-                if (assetPathes.Count == 0) Debug.LogWarning($"Could not found Any Assets {folderPath} for {setting.BundleName}");
+                if (assetPathes.Count == 0) 
+                {
+                    Debug.LogWarning($"Could not found Any Assets {folderPath} for {setting.BundleName}");
+                }
+
                 var newBundle = new AssetBundleBuild();
                 newBundle.assetBundleName = setting.BundleName;
                 newBundle.assetNames = assetPathes.ToArray();
@@ -74,9 +85,16 @@ namespace BundleSystem
             }
 
             //do build with post packing callback
-            if (local) ContentPipeline.BuildCallbacks.PostPackingCallback += PostPackingForSelectiveBuild;
+            if (local) 
+            {
+                ContentPipeline.BuildCallbacks.PostPackingCallback += PostPackingForSelectiveBuild;
+            }
+
             var returnCode = ContentPipeline.BuildAssetBundles(buildParams, new BundleBuildContent(bundleList.ToArray()), out var results);
-            if (local) ContentPipeline.BuildCallbacks.PostPackingCallback -= PostPackingForSelectiveBuild;
+            if (local) 
+            {
+                ContentPipeline.BuildCallbacks.PostPackingCallback -= PostPackingForSelectiveBuild;
+            }
 
             if (returnCode == ReturnCode.Success)
             {
@@ -173,7 +191,11 @@ namespace BundleSystem
             manifest.GlobalHash = Hash128.Compute(manifestString);
             manifest.BuildTime = DateTime.UtcNow.Ticks;
             manifest.RemoteURL = remoteURL;
-            if (!Directory.Exists(path)) Directory.CreateDirectory(path);
+            if (!Directory.Exists(path)) 
+            {
+                Directory.CreateDirectory(path);
+            }
+
             File.WriteAllText(Path.Combine(path, AssetbundleBuildSettings.ManifestFileName), JsonUtility.ToJson(manifest, true));
         }
 
@@ -187,16 +209,19 @@ namespace BundleSystem
             sb.AppendLine($"Build Time : {DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss")}");
             sb.AppendLine();
             
-            for(int i = 0; i < bundleResults.BundleInfos.Count; i++)
+            for (int i = 0; i < bundleResults.BundleInfos.Count; i++)
             {
                 var bundleInfo = bundleResults.BundleInfos.ElementAt(i);
                 var writeResult = bundleResults.WriteResults.ElementAt(i);
                 sb.AppendLine($"----File Path : {bundleInfo.Value.FileName}----");
                 var assetDic = new Dictionary<string, ulong>();
-                foreach(var file in writeResult.Value.serializedObjects)
+                foreach (var file in writeResult.Value.serializedObjects)
                 {
                     //skip nonassettype
-                    if (file.serializedObject.fileType == UnityEditor.Build.Content.FileType.NonAssetType) continue;
+                    if (file.serializedObject.fileType == UnityEditor.Build.Content.FileType.NonAssetType) 
+                    {
+                        continue;
+                    }
 
                     //gather size
                     var assetPath = AssetDatabase.GUIDToAssetPath(file.serializedObject.guid.ToString());
@@ -204,13 +229,16 @@ namespace BundleSystem
                     {
                         assetDic.Add(assetPath, file.header.size);
                     } 
-                    else assetDic[assetPath] += file.header.size;
+                    else 
+                    {
+                        assetDic[assetPath] += file.header.size;
+                    }
                 }
 
                 //sort by it's size
                 var sortedAssets = assetDic.OrderByDescending(kv => kv.Value).ThenBy(kv => kv.Key);
 
-                foreach(var asset in sortedAssets)
+                foreach (var asset in sortedAssets)
                 {
                     sb.AppendLine($"{(asset.Value * 0.000001f).ToString("0.00000").PadLeft(10)} mb - {asset.Key}");
                 }
@@ -218,17 +246,24 @@ namespace BundleSystem
                 sb.AppendLine();
             }
 
-            if (!Directory.Exists(path)) Directory.CreateDirectory(path);
+            if (!Directory.Exists(path)) 
+            {
+                Directory.CreateDirectory(path);
+            }
+
             File.WriteAllText(Path.Combine(path, LogFileName), sb.ToString());
         }
 
         static void CollectBundleDependencies(HashSet<string> result, Dictionary<string, List<string>> deps,  string name)
         {
             result.Add(name);
-            foreach(var dependency in deps[name])
+
+            foreach (var dependency in deps[name])
             {
                 if (!result.Contains(dependency))
+                {
                     CollectBundleDependencies(result, deps, dependency);
+                }
             }
         }
     }

@@ -30,7 +30,7 @@ public class LocusBundleSample : MonoBehaviour
         var downloadReq = BundleManager.DownloadAssetBundles(manifestReq.Result);
         while(!downloadReq.IsDone)
         {
-            if(downloadReq.CurrentCount >= 0)
+            if (downloadReq.CurrentCount >= 0)
             {
                 Debug.Log($"Current File {downloadReq.CurrentCount}/{downloadReq.TotalCount}, " +
                     $"Progress : {downloadReq.Progress * 100}%, " +
@@ -39,7 +39,7 @@ public class LocusBundleSample : MonoBehaviour
             yield return null;
         }
 
-        if(!downloadReq.Succeeded)
+        if (!downloadReq.Succeeded)
         {
             //handle error
             Debug.LogError(downloadReq.ErrorCode);
